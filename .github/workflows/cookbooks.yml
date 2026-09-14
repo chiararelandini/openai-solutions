@@ -13,6 +13,12 @@ name: Cookbooks
 # here. A required check that never runs leaves a pull request waiting forever,
 # which is GitHub's oldest sharp edge. Either leave them advisory, or drop the
 # filter and let the jobs no-op on their own.
+#
+# These checks are deliberately shallow. They catch what a contributor cannot
+# reasonably be expected to know and what review keeps missing anyway: a link
+# that no longer resolves, a file that should never have been committed, code
+# that does not lint. Everything about whether a recipe is *good* stays in review,
+# where a person can weigh it.
 
 on:
   pull_request:
@@ -29,33 +35,25 @@ permissions:
 
 jobs:
   python:
-    name: Python code quality
+    name: Python lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Find changed Python files under cookbooks/
-        id: changed
-        uses: tj-actions/changed-files@v46
-        with:
-          files: 'cookbooks/**/*.py'
-
       - uses: astral-sh/setup-uv@v3
-        if: steps.changed.outputs.any_changed == 'true'
 
+      # ruff reads its configuration from cookbooks/pyproject.toml, which selects
+      # E, F, I, UP and B at line-length 88. Linting the whole directory rather
+      # than the changed files is the simpler thing and avoids interpolating
+      # PR-controlled filenames into a shell command.
+      #
+      # `ruff format` is deliberately not run. That is a decision recorded in
+      # cookbooks/pyproject.toml: recipes align their request blocks by hand so
+      # the printed output reads as a table, and the formatter takes that apart.
+      # Lint the code, leave the layout alone.
       - name: ruff check
-        if: steps.changed.outputs.any_changed == 'true'
-        run: |
-          echo "${{ steps.changed.outputs.all_changed_files }}" | tr ' ' '\n'
-          uvx ruff check --output-format=github ${{ steps.changed.outputs.all_changed_files }}
-
-      - name: ruff format --check
-        if: steps.changed.outputs.any_changed == 'true'
-        run: uvx ruff format --check ${{ steps.changed.outputs.all_changed_files }}
-
-      - name: Nothing to do
-        if: steps.changed.outputs.any_changed == 'false'
-        run: echo "No Python changed under cookbooks/."
+        working-directory: cookbooks
+        run: uvx ruff check . --output-format=github
 
   links:
     name: Relative links resolve
@@ -90,6 +88,28 @@ jobs:
           done < <(find cookbooks -name '*.md')
           exit $status
 
+      # A re-linking pass once produced [label](target)](target), which stays
+      # clickable and renders the duplicate as visible text. Sixteen of them
+      # reached main, because the check above cannot see it: both halves point at
+      # a target that exists, so every link "resolves".
+      #
+      # The pattern is ](...)](  rather than a bare )](  so that a link whose text
+      # ends in a parenthesis — [Amazon Bedrock (preview)](url) — does not trip it.
+      - name: Refuse doubled link suffixes
+        run: |
+          status=0
+          while IFS= read -r doc; do
+            hits=$(awk '/^```/ { fence = !fence; next } !fence' "$doc" \
+              | grep -nE '\]\([^)]*\)\]\(' || true)
+            if [ -n "$hits" ]; then
+              echo "$hits" | while IFS= read -r hit; do
+                echo "::error file=$doc::doubled link suffix, the target is repeated: ${hit}"
+              done
+              status=1
+            fi
+          done < <(find cookbooks -name '*.md')
+          exit $status
+
   hygiene:
     name: No stray files
     runs-on: ubuntu-latest
@@ -97,8 +117,8 @@ jobs:
       - uses: actions/checkout@v4
 
       # These are gitignored in the source repository, so they arrive here only
-      # when someone copies a directory rather than using git. Cheap to check,
-      # and the failure is self-explanatory.
+      # when someone copies a directory rather than using git — which has already
+      # happened twice. Cheap to check, and the failure is self-explanatory.
       - name: Refuse OS cruft and build caches
         run: |
           found=$(find cookbooks \
