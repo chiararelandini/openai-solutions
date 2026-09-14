@@ -18,7 +18,7 @@ credential chain. Three consequences shape every recipe here:
 - **Inference is authorized on a Project ARN**, not on a model ARN. That makes
   [Projects](https://docs.aws.amazon.com/bedrock/latest/userguide/projects.html) the unit of
   both access isolation and cost attribution, and it is why two workloads can share one AWS
-  account cleanly — see `cookbooks/01-foundations/02-projects/`.
+  account cleanly — see [`cookbooks/01-foundations/02-projects/`](01-foundations/02-projects/).
 - **Some capabilities have no first-party equivalent**: native
   [Web Search](https://docs.aws.amazon.com/bedrock/latest/userguide/web-search.html)
   backed by an AWS-operated index with no data egress by default, explicit
@@ -88,7 +88,7 @@ derives the regional endpoint and takes credentials from the AWS credential chai
 `store=False` is deliberate. Responses requests on Bedrock store the response by default, and
 AWS keeps it — input and output — for 30 days, which is what lets a later call reference it with
 `previous_response_id`. A single-turn example has nothing to refer back to, so it opts out.
-`cookbooks/01-foundations/04-conversation-state/` is
+[`cookbooks/01-foundations/04-conversation-state/`](01-foundations/04-conversation-state/) is
 where that choice is made properly.
 
 ## How the recipes are organized
@@ -97,11 +97,11 @@ Five groups, each with its own README:
 
 | Directory | What it covers |
 | --- | --- |
-| `cookbooks/01-foundations/` | Making a call, Projects as the workload boundary, credentials, conversation state, streaming, and choosing between the three models |
-| `cookbooks/02-reasoning-and-output/` | Strict schemas, reasoning effort and verbosity, tool calling, carrying reasoning across turns, and tools Bedrock runs for you |
-| `cookbooks/03-grounding-and-multimodal/` | Native Web Search with citations, and scoring whether an answer is faithful to its sources |
-| `cookbooks/04-agents/` | An agent loop written by hand, the same agent run by the OpenAI Agents SDK and by Strands, and one deployed to an AgentCore harness |
-| `cookbooks/05-production/` | Explicit prompt caching, PII masking, and the questions a security review will ask |
+| [`cookbooks/01-foundations/`](01-foundations/) | Making a call, Projects as the workload boundary, credentials, conversation state, streaming, and choosing between the three models |
+| [`cookbooks/02-reasoning-and-output/`](02-reasoning-and-output/) | Strict schemas, reasoning effort and verbosity, tool calling, carrying reasoning across turns, and tools Bedrock runs for you |
+| [`cookbooks/03-grounding-and-multimodal/`](03-grounding-and-multimodal/) | Native Web Search with citations, and scoring whether an answer is faithful to its sources |
+| [`cookbooks/04-agents/`](04-agents/) | An agent loop written by hand, the same agent run by the OpenAI Agents SDK and by Strands, and one deployed to an AgentCore harness |
+| [`cookbooks/05-production/`](05-production/) | Explicit prompt caching, and masking PII before and after the model |
 
 Every recipe is one directory:
 
@@ -131,22 +131,36 @@ today still resolves after the port lands.
 ### All recipes
 
 <!-- BEGIN GENERATED: recipe-index -->
+| Recipe | What it teaches | Level | Cost |
+| --- | --- | --- | --- |
+| [`01-foundations/01-first-call/`](01-foundations/01-first-call/) | Your first call, and the four permissions it needs | beginner | low |
+| [`01-foundations/02-projects/`](01-foundations/02-projects/) | Projects: the resource that authorizes inference and attributes cost | beginner | low |
+| [`01-foundations/03-bedrock-api-key-auth/`](01-foundations/03-bedrock-api-key-auth/) | Authenticating with a Bedrock API key | beginner | low |
+| [`01-foundations/04-conversation-state/`](01-foundations/04-conversation-state/) | Conversation state, and who keeps the transcript | beginner | low |
+| [`01-foundations/05-streaming/`](01-foundations/05-streaming/) | Streaming, and what the typed events tell you | beginner | low |
+| [`01-foundations/06-choosing-a-model/`](01-foundations/06-choosing-a-model/) | Choosing a model: the same prompt on Luna, Terra and Sol | beginner | low |
+| [`02-reasoning-and-output/01-structured-claims-intake/`](02-reasoning-and-output/01-structured-claims-intake/) | Structured outputs: three levels of guarantee on an extracted record | beginner | low |
+| [`02-reasoning-and-output/02-reasoning-effort-and-verbosity/`](02-reasoning-and-output/02-reasoning-effort-and-verbosity/) | Right-sizing reasoning effort and verbosity against a quality bar | intermediate | medium |
+| [`02-reasoning-and-output/03-tool-calling/`](02-reasoning-and-output/03-tool-calling/) | Tool calling: the flat schema, and the loop around it | intermediate | low |
+| [`02-reasoning-and-output/04-reasoning-across-turns/`](02-reasoning-and-output/04-reasoning-across-turns/) | Carrying reasoning across turns | advanced | medium |
+| [`02-reasoning-and-output/05-server-side-tools/`](02-reasoning-and-output/05-server-side-tools/) | Server-side tools: Bedrock as the MCP client | advanced | low |
+| [`03-grounding-and-multimodal/01-grounded-regulatory-monitoring/`](03-grounding-and-multimodal/01-grounded-regulatory-monitoring/) | Grounded regulatory change monitoring with native Web Search | intermediate | medium |
+| [`03-grounding-and-multimodal/02-scoring-a-grounded-answer/`](03-grounding-and-multimodal/02-scoring-a-grounded-answer/) | Trusting a grounded answer: scoring it against its sources | intermediate | medium |
+| [`03-grounding-and-multimodal/03-reading-a-scanned-manual/`](03-grounding-and-multimodal/03-reading-a-scanned-manual/) | Reading a scanned manual: photos, tables and figures | intermediate | medium |
+| [`03-grounding-and-multimodal/04-rag-with-knowledge-bases/`](03-grounding-and-multimodal/04-rag-with-knowledge-bases/) | RAG with Bedrock Knowledge Bases: retrieve then generate with citations | intermediate | low |
+| [`04-agents/01-the-agent-loop/`](04-agents/01-the-agent-loop/) | The agent loop: a goal, some tools, and a round ceiling | advanced | medium |
+| [`04-agents/02-openai-agents-sdk/`](04-agents/02-openai-agents-sdk/) | Running an agent on Bedrock with the OpenAI Agents SDK | intermediate | medium |
+| [`04-agents/03-strands-agents-sdk/`](04-agents/03-strands-agents-sdk/) | Running an agent on Bedrock with Strands | intermediate | medium |
+| [`04-agents/04-agentcore-harness/`](04-agents/04-agentcore-harness/) | Deploying an agent to AgentCore Harness | advanced | low |
+| [`05-production/01-prompt-caching/`](05-production/01-prompt-caching/) | Cutting agent cost with explicit prompt caching | intermediate | low |
+| [`05-production/02-pii-masking/`](05-production/02-pii-masking/) | Masking patient identifiers before and after the model | intermediate | low |
 <!-- END GENERATED: recipe-index -->
 
-**The recipes are not here yet.** This pull request adds the directory, its dependency set and
-this entry point; the twenty-one recipes follow in five pull requests, one per group, so each
-arrives small enough to review:
-
-| Pull request | Adds | Recipes |
-| --- | --- | --- |
-| `01-foundations` | Making a call, Projects as the workload boundary, credentials, conversation state, streaming, choosing between the three models | 6 |
-| `02-reasoning-and-output` | Strict schemas, reasoning effort and verbosity, tool calling, reasoning across turns, tools Bedrock runs for you | 5 |
-| `03-grounding-and-multimodal` | Native Web Search with citations, scoring an answer against its sources, reading photographs and scanned documents | 3 |
-| `04-agents` | An agent loop by hand, the same agent under the OpenAI Agents SDK and under Strands, and one deployed to an AgentCore harness | 4 |
-| `05-production` | Explicit prompt caching, PII masking, and the questions a security review asks | 3 |
-
-Each group brings its own landing page and appends its rows to the index above. The paths named
-in this README resolve as their groups land.
+**All twenty-one recipes are here.** They are meant to be read in the order above:
+`01-foundations` because everything else assumes it, then shaping what comes back, grounding it in
+information the model was not trained on, turning a tool loop into an agent, and finally what those
+choices cost in production. Each group has its own landing page, and every path named in this
+README resolves.
 
 **Recipes are plain executable Python, not notebooks**, and each one is
 self-contained. There is no shared framework to learn first: the client
@@ -212,7 +226,7 @@ Failures that are easy to misdiagnose, with what actually causes them.
 
 | Symptom | Cause |
 | --- | --- |
-| `401 invalid_api_key`, but `aws sts get-caller-identity` works | `AWS_BEARER_TOKEN_BEDROCK` is set in your environment. The provider prefers a key over your IAM credentials, so a short-term key that has expired fails while the AWS CLI keeps working. The error never mentions a token. Run `unset AWS_BEARER_TOKEN_BEDROCK`. See `cookbooks/01-foundations/03-bedrock-api-key-auth/` |
+| `401 invalid_api_key`, but `aws sts get-caller-identity` works | `AWS_BEARER_TOKEN_BEDROCK` is set in your environment. The provider prefers a key over your IAM credentials, so a short-term key that has expired fails while the AWS CLI keeps working. The error never mentions a token. Run `unset AWS_BEARER_TOKEN_BEDROCK`. See [`cookbooks/01-foundations/03-bedrock-api-key-auth/`](01-foundations/03-bedrock-api-key-auth/) |
 | `AccessDenied` on the very first call, with no mention of a model | The OpenAI models are third-party AWS Marketplace subscriptions, so the calling identity needs `aws-marketplace:Subscribe`. It is in `AmazonBedrockMantleInferenceAccess` |
 | `AccessDenied` on inference with credentials that clearly work | Inference is authorized on a **Project ARN**, not a model ARN. Your policy has to cover the project you are calling — including `project/default` |
 | `ResourceNotFoundException` on a model that should exist | Wrong Region, or model access not enabled there. Sol is not served in `us-west-2`, where the same call returns `404 not_found_error: The model 'openai.gpt-5.6-sol' does not exist` |
