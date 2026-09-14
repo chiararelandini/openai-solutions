@@ -65,16 +65,19 @@ jobs:
       # recipes. Those break silently on a rename, and a reader meets a 404
       # rather than a diagnostic — so check them rather than trusting them.
       #
-      # Fenced code blocks are skipped: a Python call like
-      # TOOL_FUNCTIONS[name](**json.loads(args)) contains "](" and is not a link.
-      # Found by running this against the real tree, which is the only way these
-      # get found.
+      # Fenced code blocks and inline code spans are both skipped, because both
+      # legitimately contain "](" without holding a link. A Python call like
+      # TOOL_FUNCTIONS[name](**json.loads(args)) is the fenced case; prose that
+      # quotes link syntax inside backticks is the inline one, and a page
+      # documenting these very checks trips it. Both were found by running this
+      # against the real tree, which is the only way they get found.
       - name: Check every relative Markdown link under cookbooks/
         run: |
           status=0
           while IFS= read -r doc; do
             dir="$(dirname "$doc")"
             targets=$(awk '/^```/ { fence = !fence; next } !fence' "$doc" \
+              | sed 's/`[^`]*`//g' \
               | grep -oE '\]\([^)]+\)' \
               | sed 's/^](//; s/)$//; s/#.*$//' \
               | grep -vE '^(https?:|mailto:|$)' || true)
@@ -100,6 +103,7 @@ jobs:
           status=0
           while IFS= read -r doc; do
             hits=$(awk '/^```/ { fence = !fence; next } !fence' "$doc" \
+              | sed 's/`[^`]*`//g' \
               | grep -nE '\]\([^)]*\)\]\(' || true)
             if [ -n "$hits" ]; then
               echo "$hits" | while IFS= read -r hit; do
